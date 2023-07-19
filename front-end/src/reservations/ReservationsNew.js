@@ -1,5 +1,6 @@
 import { React, useState } from "react";
 import { useHistory } from "react-router-dom/";
+import { today } from "../utils/date-time";
 
 function NewReservation() {
   const history = useHistory();
@@ -22,9 +23,7 @@ function NewReservation() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const response = await NewReservation(formData);
-    history.push(`/dashboard/${response.reservation_date}`);
-    setFormData({ initialFormState });
+    history.push(`/dashboard/${formData.reservation_date}`);
   };
 
   return (
@@ -39,6 +38,7 @@ function NewReservation() {
               type="text"
               name="first_name"
               onChange={handleChange}
+              required={true}
             />
           </label>
         </div>
@@ -51,6 +51,7 @@ function NewReservation() {
               type="text"
               name="last_name"
               onChange={handleChange}
+              required={true}
             />
           </label>
           <div>
@@ -59,10 +60,11 @@ function NewReservation() {
               <input
                 className="form-style"
                 id="mobile_number"
-                type="text"
+                type="tel"
                 name="mobile_number"
                 onChange={handleChange}
                 placeholder="xxx-xxx-xxxx"
+                required={true}
               />
             </label>
           </div>
@@ -72,10 +74,13 @@ function NewReservation() {
               <input
                 className="form-style"
                 id="reservation_date"
-                type="text"
+                type="date"
                 name="reservation_date"
+                pattern="\d{4}-\d{2}-\d{2}"
+                min={today}
+                max="2050-12-31"
                 onChange={handleChange}
-                placeholder="2023-07-09"
+                required={true}
               />
             </label>
           </div>
@@ -85,21 +90,25 @@ function NewReservation() {
               <input
                 className="form-style"
                 id="reservation_time"
-                type="text"
+                type="time"
                 name="reservation_time"
+                pattern="[0-9]{2}:[0-9]{2}"
                 onChange={handleChange}
+                required={true}
               />
             </label>
           </div>
         </div>
         <div>
           <label htmlFor="people">
-            Number of People in Party:{" "}
+            Party Size:{" "}
             <input
               className="form-style"
               id="people"
-              type="text"
+              type="number"
+              min="1"
               name="people"
+              placeholder="1"
               onChange={handleChange}
             />
           </label>
