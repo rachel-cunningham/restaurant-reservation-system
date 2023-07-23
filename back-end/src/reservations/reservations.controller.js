@@ -36,13 +36,34 @@ function reservationDateCheck(req, res, next) {
 }
 async function list(req, res, next) {
   const date = req.query?.date;
+  const mobile_number = req.query?.mobile_number;
   let response;
   if (date) {
     response = await service.listByDate(date);
+  } else if(mobile_number){
+    response = await service.listByMobileNumber(mobile_number);
   } else {
     response = await service.list();
   }
+  if(response.length===0){
+    return next({
+      status: 400,
+      message: `No reservations found`,
+    });
+  }
   return res.json({ data: response });
+}
+async function reservationExists(req, res, next) {
+  const reservation_id = req.params.reservation_id;
+  let response;
+  response = await service.reservationById(reservation_id);
+  if(response.length===0){
+    return next({
+      status: 400,
+      message: `Reservation does not exist`,
+    });
+  }
+  return next();
 }
 
 function create(req, res, next) {
@@ -52,7 +73,15 @@ function create(req, res, next) {
     .catch(next);
 }
 
+function update(req, res, next){
+  service
+  .update(req.params.reservation_id,req.body.data)
+  .then((data)=>res.status(201).json({data}))
+  .catch(next);
+}
+
 module.exports = {
   list,
   create: [hasRequiredProperties, reservationDateCheck, create],
+  update:[reservationExists,update]
 };
