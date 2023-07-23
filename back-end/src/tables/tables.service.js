@@ -28,11 +28,18 @@ function getCapacity(table_id) {
 function isOccupied(table_id) {
     return knex.select(knex.raw("case when count(*)=0 then false else true end status")).from("reservations as r").where({table_id:table_id}).first();
 }
+function remove(table_id){
+    return knex("reservations")
+    .where({ table_id:table_id })
+    .update({table_id:null})
+    .select("*");
+}
 module.exports = {
   create,
   list,
   update,
   getPeople,
   getCapacity,
-  isOccupied
+  isOccupied,
+  remove
 };
