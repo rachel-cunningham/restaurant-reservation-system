@@ -31,13 +31,27 @@ async function validateTableReservation(req, res, next) {
     }
     next();
 }
-
+async function isNotOccupied(req, res, next) {
+    const isOccupied = await service.isOccupied(req.params.table_id);
+    if(!isOccupied.status){
+        return next({
+            status: 400,
+            message: `Table is not occupied`,
+          });
+    }
+    next();
+}
 async function reserveTable(req, res, next) {
     const response = await service.update(req.body.data.reservation_id,req.params.table_id);    
+    return res.json({ data: response });
+}
+async function freeTable(req, res, next) {
+    const response = await service.remove(req.params.table_id);    
     return res.json({ data: response });
 }
 module.exports = {
   create: [hasRequiredProperties, create],
   list,
-  reserveTable: [validateTableReservation,reserveTable]
+  reserveTable: [validateTableReservation,reserveTable],
+  remove:[isNotOccupied,freeTable]
 };
