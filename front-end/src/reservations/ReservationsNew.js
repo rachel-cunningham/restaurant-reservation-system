@@ -71,11 +71,9 @@ function handleTime(value) {
     const abortController = new AbortController();
     createReservation({data:formData}, abortController.signal)
     .then((resp)=>{
-      console.log(resp);
       goToReservation();
     } )
     .catch((err)=>{
-      console.log(err.message);
       setReservationsError(err.message);
     })
   };
