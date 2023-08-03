@@ -20,3 +20,9 @@ th {
 td {
     text-align: center;
 }
+.res-col{
+    width: 60%;
+}
+.table-col{
+    width: 40%;
+}
