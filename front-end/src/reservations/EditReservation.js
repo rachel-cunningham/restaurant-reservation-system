@@ -1,6 +1,6 @@
 import { React, useState } from "react";
 import { useHistory } from "react-router-dom/";
-import { createReservation } from "../utils/api";
+import { createReservation, updateReservationData } from "../utils/api";
 import { today } from "../utils/date-time";
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -14,10 +14,14 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import resimage from './../images/my-res.jpeg';
 import Alert from '@mui/material/Alert';
-function NewReservation() {
+import {useParams, useLocation} from "react-router-dom";
+
+function EditReservation() {
   const history = useHistory();
   const [reservationsError, setReservationsError] = useState(null);
+  const location = useLocation();
 
+  const uParam = useParams();
   const goBack = () => {
     history.goBack(); 
   }
@@ -26,20 +30,20 @@ function NewReservation() {
     history.push(`/dashboard?date=${formData.reservation_date}`)
   }
 
-  
   const initialFormState = {
-    first_name: "",
-    last_name: "",
-    mobile_number: "",
-    reservation_date: today(),
-    reservation_time: "",
-    people: 1,
-    status:"booked"
+    first_name: location.state.first_name,
+    last_name: location.state.last_name,
+    mobile_number: location.state.mobile_number,
+    reservation_date: location.state.reservation_date,
+    reservation_time: location.state.reservation_time,
+    people: location.state.people,
+    status:location.state.status,
+    reservation_id:uParam.reservation_id
   };
 
   const [formData, setFormData] = useState({ ...initialFormState });
   const handleChange = ({ target }) => {
-    console.log(target);
+    console.log(location);
     if(target){
       setFormData({
         ...formData,
@@ -69,7 +73,7 @@ function handleTime(value) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     const abortController = new AbortController();
-    createReservation({data:formData}, abortController.signal)
+    updateReservationData(uParam.reservation_id,{data:formData}, abortController.signal)
     .then((resp)=>{
       goToReservation();
     } )
@@ -80,7 +84,7 @@ function handleTime(value) {
 
   return (
     <div>
-      <h1>Create Reservation</h1>
+      <h1>Edit Reservation</h1>
       <Stack spacing={2} sx={{marginBottom: 4}} direction={{ xs: 'column', sm: 'column',md:'column',lg:'row',xl:'row' }}>        
         <form onSubmit={handleSubmit}>
           <Stack spacing={2} direction="row" sx={{marginBottom: 4}}>
@@ -90,6 +94,7 @@ function handleTime(value) {
                           color='secondary'
                           label="First Name"
                           name="first_name"
+                          defaultValue={initialFormState.first_name}
                           onChange={handleChange}
                           fullWidth
                           required
@@ -100,17 +105,19 @@ function handleTime(value) {
                           color='secondary'
                           label="Last Name"
                           name="last_name"
+                          defaultValue={initialFormState.last_name}
                           onChange={handleChange}
                           fullWidth
                           required
                       />
           </Stack>
           <Stack spacing={2} direction="row" sx={{marginBottom: 4}}>
-              <MuiPhoneNumber defaultCountry={'us'} onChange={handlePhone} required fullWidth></MuiPhoneNumber>
+              <MuiPhoneNumber defaultCountry={'us'} onChange={handlePhone} required value={initialFormState.mobile_number} fullWidth></MuiPhoneNumber>
           </Stack>
           <Stack spacing={2} direction="row" sx={{marginBottom: 4}} useFlexGap>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
+                defaultValue={dayjs(`${initialFormState.reservation_date}`)}
                   label="Reservation Date"
                   onChange={(newValue) => handleDate(newValue)}
                   slotProps={{
@@ -121,7 +128,7 @@ function handleTime(value) {
                 />
               </LocalizationProvider>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <TimePicker label="Reservation Time"
+              <TimePicker label="Reservation Time" defaultValue={dayjs(`2022-04-17T${initialFormState.reservation_time}`)}
             onChange={(newValue) => handleTime(newValue)}
           />
               </LocalizationProvider>
@@ -130,18 +137,16 @@ function handleTime(value) {
           <TextField
             id="people"
             label="Party Size"
+            type="number"
             InputLabelProps={{
               shrink: true,
             }}
             variant="standard"
             onChange={handleChange}
-            InputProps={{
-              inputProps: {
-                type: 'number',
-                min: 1
-              }}}
+            min= "1"
             name="people"
             placeholder="1"
+            defaultValue={initialFormState.people}
             fullWidth
           />
           </Stack>
@@ -160,4 +165,4 @@ function handleTime(value) {
   );
 }
 
-export default NewReservation;
+export default EditReservation;
