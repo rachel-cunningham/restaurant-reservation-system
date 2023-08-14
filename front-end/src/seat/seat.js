@@ -7,25 +7,28 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormHelperText from '@mui/material/FormHelperText';
-import { createTable, listTables } from "../utils/api";
+import { createTable, listTables, reserveSeat, updateReservationStatus } from "../utils/api";
 import Alert from '@mui/material/Alert';
 import resimage from './../images/my-res.jpeg';
+import {useParams} from "react-router-dom";
+
 function Seat() {
   const history = useHistory();
   const [tables, setTables] = useState([]);
-  const [tablesError, setTablesError] = useState(null);
+  const [seatsError, setSeatsError] = useState(null);
   const [tableId, setTableId] = useState('');
+  const uParam = useParams(); 
   function loadTables() {
     const abortController = new AbortController();
-    setTablesError(null);      
+    setSeatsError(null);      
       listTables()
           .then((resp)=>{
               setTables(resp);
-              setTablesError(null);
+              setSeatsError(null);
           })
           .catch((err)=>{
               setTables(null);
-              setTablesError(err.message)
+              setSeatsError(err.message)
           });
     
     return () => abortController.abort();
@@ -38,15 +41,20 @@ function Seat() {
   const handleChange = ({ target }) => {
     setTableId(target.value)
   };
-  const goToDashboard = () => {
-    history.push(`/dashboard`)
-  }
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-    // const response = await TableNew(formData);
-   console.log(tableId);
-    history.push(`/dashboard`);
-    
+    const abortController = new AbortController();
+    try{
+      const result = await reserveSeat(uParam.reservation_id,tableId);
+      console.log(result);
+      const res = await updateReservationStatus(uParam.reservation_id,'seated',abortController.signal);      
+      console.log(res);
+      history.push(`/dashboard`);
+    }catch(err){
+      setSeatsError(err?.message);
+      console.log(seatsError);
+    }
   };
   const goBack = () => {
     history.goBack(); 
@@ -62,6 +70,7 @@ function Seat() {
           value={tableId}
           label="Select Table"
           onChange={handleChange}
+          fullWidth
         >
           <MenuItem value="">
             <em>None</em>
@@ -76,7 +85,7 @@ function Seat() {
             <Button variant="outlined" onClick={goBack} size="large">Cancel</Button>
             <Button variant="contained" type="submit" size="large">Submit</Button>
             </Stack>  
-            {addTableError &&<Alert severity="error">{addTableError}</Alert>}        
+            {seatsError &&<Alert severity="error">{seatsError}</Alert>}        
       </form>
       
     </div>
