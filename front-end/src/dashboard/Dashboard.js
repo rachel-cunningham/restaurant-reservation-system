@@ -28,7 +28,7 @@ function Dashboard({ date }){
       <Stack spacing={2} direction="row">
         <div className="res-col">
             <h3 className="header-res">Reservations for {displayDate}</h3>
-            <Reservations keyString='date' value={displayDate}></Reservations>
+            <Reservations keyString='date' value={displayDate} onDateChange={handleDate}></Reservations>
         </div>
         <div className="table-col">
             <h3 className="header-table">Tables</h3>

@@ -1,10 +1,3 @@
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { listReservations, updateReservationStatus } from '../utils/api';
@@ -12,13 +5,19 @@ import "./ReservationsNav.css"
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import "./Reservation.css"
+import { Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 
-export default function Reservations({keyString,value}) {
+export default function Reservations({keyString,value,onDateChange}) {
     const history = useHistory();
     const [reservations, setReservations] = useState([]);
     const [reservationsError, setReservationsError] = useState(null);
     useEffect(loadDashboard, [keyString, value]);
-
+    const [cancelError, setCancelError] = useState(null);
+    const [open, setOpen] = React.useState(false);
+    const [reservationId, setReservationId] = React.useState(null);
+    const handleClose = () => {
+        setOpen(false);
+    };
     function loadDashboard() {
       const abortController = new AbortController();
       setReservationsError(null);
@@ -38,15 +37,26 @@ export default function Reservations({keyString,value}) {
       return () => abortController.abort();
     }
     const markSeated=reservation_id=>()=>{
+        history.push(`/reservations/${reservation_id}/seat`);
+    }
+    const editReservation=reservation=>()=>{
+        history.push(`/reservations/${reservation.reservation_id}/edit`,reservation);
+    }
+    const openDialog=reservation_id=>async ()=>{
+        setOpen(true);
+        setReservationId(reservation_id);
+    }
+    async function cancelReservation (){  
         const abortController = new AbortController();
-        updateReservationStatus(reservation_id,'seated',abortController.signal)
-        .then((resp)=>{
-            loadDashboard();
-        })
-        .catch((err)=>{
-            console.log(err.message);
-        })
-        history.push(`/reservations/1/seat`);
+        try{
+            const res = await updateReservationStatus(reservationId,'cancelled',abortController.signal);      
+            console.log(res);
+            setOpen(false);
+            history.push(`/dashboard`);
+        }catch(err){
+            setCancelError(err?.message);
+            console.log(cancelError);
+        }
     }
   return (
     <div>
@@ -75,16 +85,35 @@ export default function Reservations({keyString,value}) {
                         <Stack direction="column" spacing={2} alignItems='left'>                            
                             {reservation.status?.toLowerCase()==='booked' && <Button variant="contained" onClick={markSeated(reservation.reservation_id)}>Seat</Button>}
                             {reservation.status?.toLowerCase()!=='booked' && <Button disabled>Seated</Button>}
-                            <Button variant="contained">Edit</Button>
-                            <Button variant="outlined">Cancel</Button>                            
+                            {reservation.status?.toLowerCase()==='booked' && <Button variant="contained" onClick={editReservation(reservation)}>Edit</Button>}
+                            {reservation.status?.toLowerCase()!=='booked' && <Button variant="contained" disabled onClick={editReservation(reservation)}>Edit</Button>}
+                            <Button variant="outlined" onClick={openDialog(reservation.reservation_id)}>Cancel</Button>                            
                         </Stack>
+                        {cancelError &&<Alert severity="error">{cancelError}</Alert>}        
                     </div>
                 </div>
             ))
             
             }
         </div>
-        
+        <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+          Do you want to cancel this reservation? This cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={cancelReservation} autoFocus>
+            Ok
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
