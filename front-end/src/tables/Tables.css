@@ -8,3 +8,10 @@
 .name{
     margin-left: 10px;
 }
+.table-wrap{
+    display: flex;
+    justify-content: space-between;
+}
+.finish-button {
+    margin: 15px;
+}
