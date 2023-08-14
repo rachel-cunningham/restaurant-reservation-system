@@ -5,10 +5,10 @@ function list() {
 }
 
 function listByDate(date) {
-  return knex("reservations").select("*").where({ reservation_date: date });
+  return knex("reservations").select("*").where({ reservation_date: date }).orderBy("reservation_time");
 }
 function listByMobileNumber(mobile_number){
-  return knex("reservations").select("*").where({ mobile_number: mobile_number });
+  return knex("reservations").select("*").where({ mobile_number: mobile_number }).orderBy("reservation_time");
 }
 function reservationById(reservation_id) {
   return knex("reservations").select("*").where({ reservation_id: reservation_id });
